@@ -5,25 +5,20 @@ import { ArticleHeader } from "@/components/article/ArticleHeader";
 import { ArticleContent } from "@/components/article/ArticleContent";
 import { RelatedArticles } from "@/components/article/RelatedArticles";
 import {
-  getAllArticles,
   getArticleBySlug,
   getRelatedArticles,
-} from "@/data/articles";
+} from "@/lib/db/queries";
 import { buildArticleJsonLd } from "@/lib/seo";
+
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateStaticParams() {
-  return getAllArticles().map((article) => ({
-    slug: article.slug,
-  }));
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const article = getArticleBySlug(slug);
+  const article = await getArticleBySlug(slug);
   if (!article) return {};
 
   return {
@@ -41,13 +36,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
-  const article = getArticleBySlug(slug);
+  const article = await getArticleBySlug(slug);
 
   if (!article) {
     notFound();
   }
 
-  const related = getRelatedArticles(article);
+  const related = await getRelatedArticles(article);
   const jsonLd = buildArticleJsonLd(article);
 
   return (

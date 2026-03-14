@@ -1,10 +1,19 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "@/lib/constants";
-import { getAllArticles } from "@/data/articles";
+import { getAllArticles } from "@/lib/db/queries";
 import { CATEGORIES } from "@/lib/constants";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const articles = getAllArticles().map((article) => ({
+export const dynamic = "force-dynamic";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  let allArticles: Awaited<ReturnType<typeof getAllArticles>> = [];
+  try {
+    allArticles = await getAllArticles();
+  } catch {
+    // DB not available yet
+  }
+
+  const articleEntries = allArticles.map((article) => ({
     url: `${SITE_URL}/haber/${article.slug}`,
     lastModified: new Date(article.publishedAt),
     changeFrequency: "weekly" as const,
@@ -25,7 +34,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "daily",
       priority: 1,
     },
-    ...articles,
+    ...articleEntries,
     ...categories,
   ];
 }

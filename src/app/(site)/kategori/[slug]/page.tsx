@@ -3,9 +3,11 @@ import type { Metadata } from "next";
 import { Container } from "@/components/layout/Container";
 import { ArticleGrid } from "@/components/home/ArticleGrid";
 import { Badge } from "@/components/ui/Badge";
-import { getArticlesByCategory } from "@/data/articles";
+import { getArticlesByCategory } from "@/lib/db/queries";
 import { CATEGORIES, CATEGORY_MAP, SITE_NAME } from "@/lib/constants";
 import type { CategorySlug } from "@/types/article";
+
+export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -40,7 +42,7 @@ export default async function CategoryPage({ params }: PageProps) {
     notFound();
   }
 
-  const articles = getArticlesByCategory(category.slug);
+  const articles = await getArticlesByCategory(category.slug);
 
   return (
     <Container className="py-10">

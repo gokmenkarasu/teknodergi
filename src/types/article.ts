@@ -20,3 +20,14 @@ export interface Article {
   readonly tags: readonly string[];
   readonly featured?: boolean;
 }
+
+export type ArticleStatus = "draft" | "published";
+
+export interface AdminArticle extends Article {
+  readonly id: number;
+  readonly status: ArticleStatus;
+  readonly seoTitle: string | null;
+  readonly seoDescription: string | null;
+  readonly createdAt: string;
+  readonly updatedAt: string;
+}

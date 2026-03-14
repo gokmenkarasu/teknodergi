@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
 import { SITE_NAME, SITE_DESCRIPTION } from "@/lib/constants";
 import "./globals.css";
 
@@ -20,7 +18,7 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: `${SITE_NAME} - Türkçe Teknoloji Haberleri`,
+    default: `${SITE_NAME} - Turkce Teknoloji Haberleri`,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -48,11 +46,7 @@ export default function RootLayout({
           enableSystem={false}
           themes={["dark", "light"]}
         >
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
+          {children}
         </ThemeProvider>
       </body>
     </html>
