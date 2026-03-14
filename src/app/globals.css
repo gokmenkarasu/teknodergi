@@ -1,26 +1,205 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── Dark-first design system ─── */
+
+/* Dark mode (DEFAULT) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --surface-0: #0B1120;
+  --surface-1: #111827;
+  --surface-2: #1E293B;
+  --surface-3: #334155;
+  --surface-glass: rgba(11, 17, 32, 0.95);
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+  --text-inverse: #0B1120;
+  --accent: #06B6D4;
+  --accent-light: #22D3EE;
+  --accent-dim: rgba(6, 182, 212, 0.12);
+  --accent-subtle: rgba(6, 182, 212, 0.06);
+  --cat-ai: #8B5CF6;
+  --cat-startup: #10B981;
+  --cat-bigtech: #3B82F6;
+  --cat-yazilim: #F59E0B;
+  --cat-donanim: #EF4444;
+  --border-subtle: rgba(148, 163, 184, 0.08);
+  --border-medium: rgba(148, 163, 184, 0.15);
+  --border-strong: rgba(148, 163, 184, 0.25);
+  --border-accent: rgba(6, 182, 212, 0.3);
+  --header-bg: #060D1B;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 0 8px 25px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
+/* Light mode */
+.light {
+  --surface-0: #F8FAFC;
+  --surface-1: #FFFFFF;
+  --surface-2: #F1F5F9;
+  --surface-3: #E2E8F0;
+  --surface-glass: rgba(255, 255, 255, 0.95);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-tertiary: #94A3B8;
+  --text-inverse: #FFFFFF;
+  --accent: #0891B2;
+  --accent-light: #06B6D4;
+  --accent-dim: rgba(8, 145, 178, 0.08);
+  --accent-subtle: rgba(8, 145, 178, 0.04);
+  --cat-ai: #7C3AED;
+  --cat-startup: #059669;
+  --cat-bigtech: #2563EB;
+  --cat-yazilim: #D97706;
+  --cat-donanim: #DC2626;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-medium: rgba(0, 0, 0, 0.10);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  --border-accent: rgba(8, 145, 178, 0.25);
+  --header-bg: #FFFFFF;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 8px 25px rgba(0, 0, 0, 0.1);
+  --shadow-elevated: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* ─── Tailwind v4 theme mapping ─── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-glass: var(--surface-glass);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-inverse: var(--text-inverse);
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-cat-ai: var(--cat-ai);
+  --color-cat-startup: var(--cat-startup);
+  --color-cat-bigtech: var(--cat-bigtech);
+  --color-cat-yazilim: var(--cat-yazilim);
+  --color-cat-donanim: var(--cat-donanim);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-medium: var(--border-medium);
+  --color-border-strong: var(--border-strong);
+  --color-border-accent: var(--border-accent);
+  --color-header-bg: var(--header-bg);
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-elevated: var(--shadow-elevated);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Base styles ─── */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--surface-0);
+  color: var(--text-primary);
+  font-feature-settings: "kern" 1, "liga" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--accent);
+  color: var(--text-inverse);
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--surface-0);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* ─── Article prose ─── */
+.prose-article {
+  line-height: 1.75;
+  font-size: 1.0625rem;
+}
+.prose-article p {
+  margin-bottom: 1.5rem;
+}
+.prose-article h2 {
+  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+.prose-article blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+.prose-article strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.prose-article a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-article a:hover {
+  color: var(--accent-light);
+}
+.prose-article ul, .prose-article ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+.prose-article li {
+  margin-bottom: 0.5rem;
+}
+.prose-article table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+}
+.prose-article th, .prose-article td {
+  border: 1px solid var(--border-medium);
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+.prose-article th {
+  background: var(--surface-2);
+  font-weight: 600;
+}
+
+/* ─── Focus ─── */
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
 }
