@@ -2,6 +2,26 @@ import type { Article, CategorySlug } from "@/types/article";
 
 export const articles: readonly Article[] = [
   {
+    slug: "tiktok-apple-music-tam-sarki-entegrasyonu",
+    title: "TikTok, Apple Music Abonelerine Uygulama İçinden Tam Şarkı Dinleme İmkânı Sunuyor",
+    excerpt: "TikTok artık Apple Music abonelerinin kısa videodan tam şarkıya geçişini tek bir uygulama içinde tamamlamasına izin veriyor.",
+    content: `<p><strong>TikTok</strong>, <strong>Apple Music</strong> abonelerinin şarkıları uygulama içinden tam olarak dinleyebileceği yeni bir özellik başlattı. Kullanıcılar artık bir videoda keşfettikleri şarkıyı dinlemek için TikTok'tan çıkmak zorunda kalmayacak.</p>
+<h3>Keşiften Dinlemeye Tek Adım</h3>
+<p>TikTok, müzik endüstrisinde zaten güçlü bir keşif kanalı. Viral olan şarkıların çoğu platformda yükselişe geçiyor. Ancak şimdiye kadar kullanıcılar tam şarkıyı dinlemek için Spotify, Apple Music veya YouTube Music'e geçmek zorundaydı. Yeni entegrasyonla bu adım ortadan kalkıyor — en azından Apple Music aboneleri için.</p>
+<h3>TikTok Neden Müzik Platformuna Dönüşüyor?</h3>
+<p>Hamlenin arkasında TikTok'un kullanıcıları uygulama içinde tutma stratejisi var. Keşif ile tüketim arasındaki boşluğu kapatmak, kullanıcı başına geçirilen süreyi doğrudan artırıyor. TikTok bu sayede sadece müzik keşif motoru değil, aynı zamanda dinleme platformu konumuna geçiyor.</p>
+<p>Apple açısından ise ortaklık, Music servisinin erişimini genişletiyor. Spotify'a karşı abone kazanma yarışında, milyarlarca aktif kullanıcıya sahip bir sosyal platformda tam entegrasyon ciddi bir avantaj.</p>
+<h3>Sektör İçin Ne Anlama Geliyor?</h3>
+<p>Sosyal medya ve müzik streaming arasındaki sınırlar hızla bulanıklaşıyor. Instagram'ın Spotify entegrasyonu, YouTube'un Shorts-Music bağlantısı derken, TikTok-Apple Music ortaklığı bu trendin en somut adımlarından biri. Müzik dinleme deneyimi artık ayrı bir uygulama değil, sosyal akışın parçası haline geliyor.</p>`,
+    category: "big-tech",
+    coverImage: "/images/articles/tiktok-apple-music.svg",
+    publishedAt: "2026-03-15T14:00:00Z",
+    readingTime: 4,
+    author: "TeknoDergi",
+    tags: ["TikTok", "Apple Music", "müzik streaming", "entegrasyon"],
+    featured: true,
+  },
+  {
     slug: "meta-moltbook-satin-alimi-ai-agent-ticaret",
     title: "Meta, Moltbook'u Satın Alarak Yapay Zeka Ajanlarının Yöneteceği Ticaret Altyapısına Yatırım Yapıyor",
     excerpt: "Meta'nın Moltbook satın alımı, şirketin geleceği insan kullanıcılardan çok otonom AI ajanlarının şekillendireceği bir internet vizyonuna işaret ediyor.",
@@ -19,7 +39,6 @@ export const articles: readonly Article[] = [
     readingTime: 5,
     author: "TeknoDergi",
     tags: ["Meta", "Moltbook", "yapay zeka", "AI ajanları", "agentic commerce"],
-    featured: true,
   },
   {
     slug: "meta-16-bin-calisan-isten-cikarma-yapay-zeka",
