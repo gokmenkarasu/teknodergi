@@ -61,34 +61,44 @@ Haberin temel açısını tek cümlede belirle. Bu cümle:
 
 ## 5N1K ÇIKARIMI
 
-Her haberin temelinde 5N1K yatar. Kaynak metinden veya konudan çıkarabildiğin kadar doldur:
-- KİM: İlgili tüm aktörler (şirketler, kişiler, kurumlar)
-- NE OLDU: Haberin özü, tek cümle
-- NEREDE: Coğrafi bağlam
-- NE ZAMAN: Tarih, dönem veya zaman çerçevesi
-- NEDEN ÖNEMLİ: Haberin sektörel/toplumsal önemi
+Her haberin temelinde 5N1K yatar. Kaynak metni SATIR SATIR tara ve tüm bilgileri çıkar:
+- KİM: İlgili TÜM aktörler — şirketler, alt markalar, kişi isimleri, kurumlar, ortaklar. Kaynak metinde geçen HER şirket ve kişi adını dahil et.
+- NE OLDU: Haberin özü — somut ve spesifik. "Üretimi durdurdu" yerine "X, Y ve Z modellerinin üretimini durdurdu" gibi detaylı yaz.
+- NEREDE: Coğrafi bağlam — ülke, pazar (ör. "ABD pazarı"), şehir. Kaynak metinde geçiyorsa MUTLAKA yaz.
+- NE ZAMAN: Tarih, gün, hafta, dönem. Kaynak metinde "this week", "Thursday", "Friday" gibi ifadeler varsa tarihe çevir.
+- NEDEN ÖNEMLİ: Haberin sektörel/toplumsal önemi — spesifik ol.
 
 ## KRİTİK MADDİ GERÇEKLER
 
-Haberde mutlaka yer alması gereken doğrulanabilir gerçekleri listele:
-- Rakamlar (yatırım tutarı, kullanıcı sayısı, fiyat vb.)
-- Tarihler
-- Resmi isimler ve unvanlar
-- Doğrudan alıntılar (varsa)
+Bu alan haberin OMURGASIDIR. Kaynak metni dikkatle oku ve aşağıdakilerin HEPSİNİ çıkar:
+- Ürün/model adları (ör. "Honda 0 sedan", "Acura RDX", "Prologue")
+- Rakamlar (yatırım tutarı, kullanıcı sayısı, fiyat, adet, yüzde vb.)
+- Tarihler ve zaman çizelgeleri
+- Resmi isimler, unvanlar, şirket adları
+- Doğrudan alıntılar (varsa, tırnak içinde)
+- Ortaklıklar, anlaşmalar, ilişkiler (ör. "GM tarafından tasarlanıp üretilen")
+- Karar gerekçeleri (ör. "ABD gümrük tarifeleri ve Çin rekabeti")
+
+Kaynak metinde geçen SOMUT her bilgi burada olmalı. Genel ifadeler değil, spesifik veriler.
 
 ## ROL DAĞILIMI
 
-Haberdeki her aktörün rolünü belirle. Örnek:
+Haberdeki her aktörün rolünü belirle. Kaynak metinde geçen TÜM şirket ve kişileri dahil et. Örnek:
 - "Uber": "Platform sağlayıcı, müşteri erişim altyapısı"
 - "Wayve": "Otonom sürüş teknolojisi geliştiricisi"
+- "GM": "Prologue aracının tasarım ve üretim ortağı"
 
 ## TEKNİK DETAYLAR
 
-Haberde teknik açıklama gerektiren konuları listele. Boş kalabilir.
+Haberde geçen teknik bilgileri listele:
+- Ürün özellikleri, teknoloji türleri (ör. "yazılım tanımlı araç", "elektrikli aktarma organı")
+- Teknik karşılaştırmalar veya sektörel teknik trendler
+- Altyapı, platform, yazılım bilgileri
+Kaynak metinde teknik detay VARSA burası boş KALMAMALI.
 
 ## FİNANSAL DETAYLAR
 
-Yatırım tutarları, değerleme, gelir, fiyatlandırma gibi finansal verileri listele. Boş kalabilir.
+Yatırım tutarları, değerleme, gelir, fiyatlandırma, pazar payı gibi finansal verileri listele. Kaynak metinde finansal veri varsa burası boş kalmamalı.
 
 ## BAĞLAM
 
@@ -112,12 +122,13 @@ Kaynak metinde veya konuda eksik, belirsiz veya doğrulanamayan noktaları liste
 
 ## KATEGORİ
 
-Aşağıdaki kategorilerden birini öner:
+Aşağıdaki kategorilerden en uygun olanı seç:
 - yapay-zeka: AI, LLM, makine öğrenimi
 - startup: Girişim, yatırım, fonlama
-- big-tech: Apple, Google, Microsoft, Meta, Amazon gibi büyük şirketler
+- big-tech: Apple, Google, Microsoft, Meta, Amazon gibi büyük teknoloji şirketleri
 - yazilim: Programlama, framework, yazılım geliştirme
 - donanim: İşlemci, telefon, bilgisayar, donanım
+- mobilite: Elektrikli araçlar, otonom sürüş, ulaşım teknolojileri, otomotiv
 
 ## ETİKETLER
 
@@ -149,9 +160,12 @@ Yanıtını MUTLAKA aşağıdaki JSON formatında ver. Başka hiçbir şey eklem
 ## KURALLAR
 
 - Bilgi üretme, uydurma. Kaynak metinde olmayan veriyi ekleme.
+- AMA kaynak metinde OLAN bilgiyi de ATLAMA. Metni satır satır tara — her isim, rakam, tarih, model adı, şirket adı, coğrafi bilgi plan'a yansımalı.
 - Belirsiz noktaları açıkça belirt.
 - Eksik alanları boş bırakma, "Belirtilmemiş" veya "Kaynak metinde yok" yaz.
-- Haber metni, başlık veya spot YAZMA. Sadece plan üret.`;
+- Haber metni, başlık veya spot YAZMA. Sadece plan üret.
+- Kaynak metin İngilizce olsa bile, plan'ı Türkçe yaz. İsimler ve marka adları orijinal kalabilir.
+- "kritik_maddi_gercekler" listesi en az 5 madde içermeli. Kaynak metinde bu kadar veri yoksa olanı yaz ve belirsiz_noktalar'a not düş.`;
 
 // ── Helpers ──
 
@@ -161,6 +175,7 @@ const VALID_CATEGORIES = [
   "big-tech",
   "yazilim",
   "donanim",
+  "mobilite",
 ] as const;
 
 /** Build the user message from input fields */

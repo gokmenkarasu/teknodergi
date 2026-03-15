@@ -31,6 +31,7 @@ const CATEGORY_OPTIONS = [
   { value: "big-tech", label: "Big Tech" },
   { value: "yazilim", label: "Yazılım" },
   { value: "donanim", label: "Donanım" },
+  { value: "mobilite", label: "Mobilite" },
 ];
 
 const CRITERION_LABELS: Record<string, string> = {

@@ -285,65 +285,74 @@ async function fetchDirect(parsedUrl: URL): Promise<FetchResult> {
 
 const JINA_TIMEOUT = 25_000;
 
-/** Clean Jina markdown output — strip navigation, menus, footers */
+/** Light cleaning of Jina markdown — keep article content, strip only obvious noise */
 function cleanJinaMarkdown(raw: string): {
   title: string | undefined;
   text: string;
 } {
   const lines = raw.split("\n");
 
-  // Extract title from "Title:" header (Jina convention)
+  // Extract metadata from Jina headers
   let title: string | undefined;
-  const titleLine = lines.find((l) => l.startsWith("Title:"));
-  if (titleLine) {
-    title = titleLine.replace("Title:", "").trim();
-  }
+  let contentStartIndex = 0;
 
-  // Find the actual article content:
-  // Skip past navigation by looking for the content area.
-  // Jina markdown usually has nav links at top, then article body.
-  // Heuristic: find the first substantial paragraph (>80 chars, no links)
-  let contentStart = 0;
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    // Skip short lines, link-only lines, image refs, headings with ===
-    if (
-      line.length < 80 ||
-      line.startsWith("[") ||
-      line.startsWith("![") ||
-      line.startsWith("*") ||
-      line === "---" ||
-      /^=+$/.test(line) ||
-      /^#+\s/.test(line)
-    ) {
-      continue;
+  for (let i = 0; i < Math.min(lines.length, 10); i++) {
+    const line = lines[i];
+    if (line.startsWith("Title:")) {
+      title = line.replace("Title:", "").trim();
     }
-    // Found a substantial paragraph — this is likely article content
-    contentStart = i;
-    break;
-  }
-
-  // Also strip footer content (after "Related" or common footer patterns)
-  let contentEnd = lines.length;
-  for (let i = lines.length - 1; i > contentStart; i--) {
-    const line = lines[i].trim().toLowerCase();
-    if (
-      line.includes("related articles") ||
-      line.includes("more from techcrunch") ||
-      line.includes("newsletter") ||
-      line.includes("© 20") ||
-      line.includes("privacy policy") ||
-      line.includes("terms of service")
-    ) {
-      contentEnd = i;
+    if (line.startsWith("Markdown Content:")) {
+      contentStartIndex = i + 1;
       break;
     }
   }
 
-  const articleLines = lines.slice(contentStart, contentEnd);
-  const text = articleLines
+  // Work with content after Jina metadata headers
+  const contentLines = lines.slice(contentStartIndex);
+
+  // Light filter: remove lines that are clearly navigation/menu noise
+  const filtered = contentLines.filter((line) => {
+    const trimmed = line.trim();
+
+    // Keep empty lines (paragraph separation)
+    if (!trimmed) return true;
+
+    // Keep headings (article structure)
+    if (/^#{1,6}\s/.test(trimmed)) return true;
+    if (/^=+$/.test(trimmed) || /^-+$/.test(trimmed)) return true;
+
+    // Keep substantial lines (likely article content)
+    if (trimmed.length > 60) return true;
+
+    // Remove pure navigation links: lines that are ONLY a markdown link
+    if (/^\[.*\]\(.*\)$/.test(trimmed) && trimmed.length < 60) return false;
+
+    // Remove bullet-only navigation (short list items that are just links)
+    if (/^\*\s+\[.*\]\(.*\)$/.test(trimmed)) return false;
+
+    // Keep everything else — GPT-4o can handle noise
+    return true;
+  });
+
+  // Strip obvious footer sections
+  let endIdx = filtered.length;
+  for (let i = filtered.length - 1; i > 0; i--) {
+    const lower = filtered[i].trim().toLowerCase();
+    if (
+      lower.includes("terms of service") ||
+      lower.includes("privacy policy") ||
+      lower.includes("© 20") ||
+      lower.includes("cookie preferences")
+    ) {
+      endIdx = i;
+      break;
+    }
+  }
+
+  const text = filtered
+    .slice(0, endIdx)
     .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
+    .replace(/\n{4,}/g, "\n\n\n")
     .trim();
 
   return { title, text };
