@@ -26,7 +26,7 @@ export function HeroSection({ featured, trending }: HeroSectionProps) {
             className="group lg:col-span-7"
           >
             {/* Image with overlay text */}
-            <div className="relative aspect-video overflow-hidden rounded-xl bg-surface-2">
+            <div className="relative aspect-[16/11] overflow-hidden rounded-xl bg-surface-2">
               <Image
                 src={featured.coverImage}
                 alt={featured.title}
