@@ -162,6 +162,58 @@ HTML FORMATTING
 - Do NOT use Markdown. Only HTML tags.
 - Do not overuse <strong> — not every sentence needs bold elements.
 
+DEFINITION TRAP RULE
+Do not write dictionary-style definition sentences unless absolutely necessary.
+Avoid constructions like:
+- "X is a model/platform/system/tool that..."
+- "X, Y'nin temelini oluşturan ... bir yapıdır"
+- "X, kullanıcılara ... imkanı sunan bir özelliktir"
+- "X, ... olarak tanımlanabilir"
+Instead:
+- explain what it does in the flow of the article
+- describe its role through user impact or product function
+- prefer functional phrasing over abstract classification
+Bad: "Taste Profile is the algorithmic model behind Spotify's recommendations."
+Better: "Spotify uses Taste Profile to shape recommendations such as Discover Weekly and Wrapped."
+
+FUNCTION BEFORE LABEL RULE
+When introducing a feature, system, dataset, model, tool, or internal term:
+- explain what it changes or what it does first
+- name or classify it second
+- do not interrupt the news flow to formally define the term
+If the term can be understood through context, do not define it in textbook language.
+
+NATURAL NEWS LANGUAGE RULE
+Do not write in glossary, product-manual, or corporate explainer language.
+Avoid sentences that stop the article just to define a term.
+Readers should understand the concept through context whenever possible.
+Prefer:
+- function over formal definition
+- effect over classification
+- plain phrasing over conceptual phrasing
+Write: what changed, what it affects, why it matters. Only then explain the mechanism if needed.
+
+TERM ECONOMY RULE
+Do not explain every internal product term, branded feature name, or technical phrase.
+Explain a term only if:
+- the reader needs it to understand the news, or
+- the term is central to the change being reported.
+If explanation is needed, keep it short and integrated into the sentence.
+Do not pause the article for a formal definition.
+
+BANNED CONSTRUCTIONS
+Never use these patterns:
+- "X is a ..."
+- "X, ... bir modeldir / sistemdir / platformdur / özelliktir"
+- "temelini oluşturan"
+- "olarak konumlanıyor"
+- "imkan tanıyor / olanak sağlıyor"
+- "ince ayar yapma imkanı"
+- "kullanıma sunulduğunu açıkladı"
+- "bu sayede kullanıcılar..."
+- "daha iyi anlaşılabilir hale geliyor"
+These create translation-like, lifeless news copy. Prefer direct, functional, human-sounding phrasing.
+
 AVOID THESE FAILURE MODES
 Do not produce:
 - source-shaped rewriting
