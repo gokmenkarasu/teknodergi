@@ -1,19 +1,35 @@
 import { signIn } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { AuthError } from "next-auth";
 
 export const metadata = {
   title: "Giris Yap | TeknoDergi Admin",
 };
 
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; callbackUrl?: string }>;
+}) {
+  return <LoginForm searchParams={searchParams} />;
+}
+
+async function LoginForm({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; callbackUrl?: string }>;
+}) {
+  const params = await searchParams;
+  const error = params.error;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface-0 p-4">
-      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-border bg-surface-1 p-8 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-accent">
-          <span className="text-2xl font-bold text-white">T</span>
-        </div>
-
-        <div>
-          <h1 className="font-display text-2xl font-bold text-text-primary">
+      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-border bg-surface-1 p-8">
+        <div className="text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-accent">
+            <span className="text-2xl font-bold text-white">T</span>
+          </div>
+          <h1 className="mt-4 font-display text-2xl font-bold text-text-primary">
             TeknoDergi Admin
           </h1>
           <p className="mt-2 text-sm text-text-secondary">
@@ -21,40 +37,74 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {error && (
+          <div className="rounded-lg bg-red-500/10 px-4 py-3 text-center text-sm text-red-400">
+            Email veya sifre hatali
+          </div>
+        )}
+
         <form
-          action={async () => {
+          action={async (formData: FormData) => {
             "use server";
-            await signIn("google", { redirectTo: "/admin" });
+            try {
+              await signIn("credentials", {
+                email: formData.get("email"),
+                password: formData.get("password"),
+                redirectTo: "/admin",
+              });
+            } catch (error) {
+              if (error instanceof AuthError) {
+                redirect("/admin/login?error=credentials");
+              }
+              throw error;
+            }
           }}
+          className="space-y-4"
         >
+          <div>
+            <label
+              htmlFor="email"
+              className="mb-1.5 block text-sm font-medium text-text-secondary"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              className="w-full rounded-lg border border-border bg-surface-2 px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              placeholder="admin@example.com"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="password"
+              className="mb-1.5 block text-sm font-medium text-text-secondary"
+            >
+              Sifre
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              className="w-full rounded-lg border border-border bg-surface-2 px-4 py-2.5 text-sm text-text-primary placeholder:text-text-tertiary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              placeholder="••••••••"
+            />
+          </div>
+
           <button
             type="submit"
-            className="flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-surface-2 px-4 py-3 text-sm font-medium text-text-primary transition-colors hover:bg-surface-0"
+            className="w-full rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent/90"
           >
-            <svg className="h-5 w-5" viewBox="0 0 24 24">
-              <path
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
-                fill="#4285F4"
-              />
-              <path
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                fill="#34A853"
-              />
-              <path
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                fill="#FBBC05"
-              />
-              <path
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                fill="#EA4335"
-              />
-            </svg>
-            Google ile Giris Yap
+            Giris Yap
           </button>
         </form>
 
-        <p className="text-xs text-text-tertiary">
-          Sadece yetkilendirilmis e-posta adresleri giris yapabilir.
+        <p className="text-center text-xs text-text-tertiary">
+          Sadece yetkilendirilmis hesaplar giris yapabilir.
         </p>
       </div>
     </div>

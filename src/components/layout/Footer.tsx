@@ -4,32 +4,31 @@ import { CATEGORIES, SITE_NAME } from "@/lib/constants";
 
 export function Footer() {
   return (
-    <footer className="mt-16 border-t border-border-subtle bg-surface-1">
-      <Container className="py-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
+    <footer className="border-t border-border-subtle bg-surface-0">
+      <Container className="py-10">
+        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+          <div className="col-span-2 sm:col-span-1">
             <Link
               href="/"
-              className="font-display text-xl font-extrabold text-text-primary"
+              className="font-display text-lg font-extrabold text-text-primary"
             >
               Tekno<span className="text-accent">Dergi</span>
             </Link>
-            <p className="mt-3 text-sm leading-relaxed text-text-secondary">
-              Teknoloji dünyasından en güncel haberler, derinlemesine analizler
-              ve özgün yorumlar.
+            <p className="mt-2 text-xs leading-relaxed text-text-tertiary">
+              Teknoloji dünyasından güncel haberler ve analizler.
             </p>
           </div>
 
           <div>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-text-tertiary">
+            <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.15em] text-text-tertiary">
               Kategoriler
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               {CATEGORIES.map((cat) => (
                 <li key={cat.slug}>
                   <Link
                     href={`/kategori/${cat.slug}`}
-                    className="text-sm text-text-secondary transition-colors hover:text-accent"
+                    className="text-xs text-text-secondary transition-colors hover:text-text-primary"
                   >
                     {cat.name}
                   </Link>
@@ -39,18 +38,18 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-text-tertiary">
+            <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.15em] text-text-tertiary">
               Hakkımızda
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               <li>
-                <span className="text-sm text-text-secondary">Hakkımızda</span>
+                <span className="text-xs text-text-secondary">Hakkımızda</span>
               </li>
               <li>
-                <span className="text-sm text-text-secondary">İletişim</span>
+                <span className="text-xs text-text-secondary">İletişim</span>
               </li>
               <li>
-                <span className="text-sm text-text-secondary">
+                <span className="text-xs text-text-secondary">
                   Yayın Politikası
                 </span>
               </li>
@@ -58,25 +57,22 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-text-tertiary">
-              Sosyal Medya
+            <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.15em] text-text-tertiary">
+              Takip
             </h3>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               <li>
-                <span className="text-sm text-text-secondary">Twitter / X</span>
+                <span className="text-xs text-text-secondary">Twitter / X</span>
               </li>
               <li>
-                <span className="text-sm text-text-secondary">LinkedIn</span>
-              </li>
-              <li>
-                <span className="text-sm text-text-secondary">GitHub</span>
+                <span className="text-xs text-text-secondary">LinkedIn</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-10 border-t border-border-subtle pt-6 text-center text-xs text-text-tertiary">
-          &copy; {new Date().getFullYear()} {SITE_NAME}. Tüm hakları saklıdır.
+        <div className="mt-8 border-t border-border-subtle pt-4 text-[11px] text-text-tertiary">
+          &copy; {new Date().getFullYear()} {SITE_NAME}
         </div>
       </Container>
     </footer>

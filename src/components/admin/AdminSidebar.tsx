@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   FileText,
-  PlusCircle,
+  Sparkles,
   LogOut,
   Home,
 } from "lucide-react";
@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/articles", label: "Makaleler", icon: FileText },
-  { href: "/admin/articles/new", label: "Yeni Makale", icon: PlusCircle },
+  { href: "/admin/articles/new", label: "Yeni Makale", icon: Sparkles },
 ];
 
 export function AdminSidebar() {
