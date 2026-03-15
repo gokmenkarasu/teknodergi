@@ -17,7 +17,7 @@ export interface FetchResult {
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
-const FETCH_TIMEOUT = 15_000;
+const FETCH_TIMEOUT = 7_000; // Vercel hobby has 10s limit — keep under
 const MAX_TEXT_LENGTH = 80_000;
 const MIN_USEFUL_LENGTH = 100;
 
@@ -283,7 +283,7 @@ async function fetchDirect(parsedUrl: URL): Promise<FetchResult> {
 
 // ── Strategy 2: Jina Reader API (handles JS rendering, paywalls) ──
 
-const JINA_TIMEOUT = 25_000;
+const JINA_TIMEOUT = 8_000; // Vercel hobby has 10s limit — keep under
 
 /** Light cleaning of Jina markdown — keep article content, strip only obvious noise */
 function cleanJinaMarkdown(raw: string): {
@@ -419,7 +419,17 @@ async function fetchViaJina(parsedUrl: URL): Promise<FetchResult> {
   }
 }
 
-// ── Main Function (multi-strategy) ──
+// ── Helpers ──
+
+/** Wraps a fetch result into a Promise that rejects if content is insufficient */
+function requireUseful(promise: Promise<FetchResult>): Promise<FetchResult> {
+  return promise.then((r) => {
+    if (r.success && r.text.length >= MIN_USEFUL_LENGTH) return r;
+    return Promise.reject(r);
+  });
+}
+
+// ── Main Function (parallel race) ──
 
 export async function fetchSourceUrl(url: string): Promise<FetchResult> {
   // Validate URL
@@ -433,33 +443,32 @@ export async function fetchSourceUrl(url: string): Promise<FetchResult> {
     return { success: false, text: "", error: "Geçersiz URL formatı" };
   }
 
-  // Strategy 1: Direct fetch (fast, works for most sites)
-  const directResult = await fetchDirect(parsedUrl);
-  if (directResult.success && directResult.text.length >= MIN_USEFUL_LENGTH) {
-    return directResult;
+  // Race both strategies in parallel — first successful one wins
+  try {
+    const result = await Promise.any([
+      requireUseful(fetchDirect(parsedUrl)),
+      requireUseful(fetchViaJina(parsedUrl)),
+    ]);
+    return result;
+  } catch {
+    // Both failed — try to return best partial result
   }
 
-  // Strategy 2: Jina Reader fallback (handles JS rendering, bot protection)
+  // Fallback: run Jina alone (it's more reliable for news sites)
   const jinaResult = await fetchViaJina(parsedUrl);
-  if (jinaResult.success && jinaResult.text.length >= MIN_USEFUL_LENGTH) {
-    return jinaResult;
-  }
-
-  // Both failed — return best partial result or final error
-  if (directResult.text.length > 0) {
+  if (jinaResult.text.length > 0) {
     return {
       success: true,
-      text: directResult.text,
-      title: directResult.title,
+      text: jinaResult.text,
+      title: jinaResult.title,
       error:
-        "Sayfa içeriği tam çıkarılamadı. Mevcut meta verileri eklendi — kaynak metni manuel zenginleştirmeniz önerilir.",
+        "Sayfa içeriği kısmen çıkarıldı — kaynak metni kontrol edin.",
     };
   }
 
   return {
     success: false,
     text: "",
-    title: directResult.title ?? jinaResult.title,
     error:
       "İçerik çıkarılamadı — sayfa bot korumalı veya paywall arkasında olabilir. Kaynak metni manuel yapıştırın.",
   };

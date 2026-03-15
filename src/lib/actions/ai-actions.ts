@@ -63,23 +63,11 @@ export async function generateStoryPlanAction(
   await requireAdminAuth();
   if (!input.topic.trim()) throw new Error("Konu boş olamaz");
 
-  // Auto-fetch: if sourceUrl is given but sourceText is empty, try to fetch
-  let enrichedSourceText = input.sourceText?.trim() || undefined;
-  const sourceUrl = input.sourceUrl?.trim() || undefined;
-
-  if (sourceUrl && !enrichedSourceText) {
-    const fetchResult = await fetchSourceUrl(sourceUrl);
-    if (fetchResult.success && fetchResult.text) {
-      enrichedSourceText = fetchResult.text;
-    }
-    // If fetch fails, continue without — AI will work with topic only
-  }
-
   return generateStoryPlan({
     ...input,
     topic: input.topic.trim(),
-    sourceText: enrichedSourceText,
-    sourceUrl,
+    sourceText: input.sourceText?.trim() || undefined,
+    sourceUrl: input.sourceUrl?.trim() || undefined,
     editorNote: input.editorNote?.trim() || undefined,
   });
 }

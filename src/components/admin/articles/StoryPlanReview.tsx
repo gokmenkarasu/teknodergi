@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import {
   generateStoryPlanAction,
   writeArticleFromPlanAction,
@@ -553,9 +553,15 @@ export function StoryPlanReview({
 
   // ── URL Fetch ──
 
-  const handleFetchUrl = async () => {
-    const url = input.sourceUrl.trim();
+  const fetchUrlRef = useRef<string>("");
+
+  const handleFetchUrl = async (urlOverride?: string) => {
+    const url = (urlOverride ?? input.sourceUrl).trim();
     if (!url) return;
+
+    // Prevent duplicate fetches for same URL
+    if (fetchUrlRef.current === url && isFetching) return;
+    fetchUrlRef.current = url;
 
     setIsFetching(true);
     setFetchMessage("");
@@ -590,6 +596,23 @@ export function StoryPlanReview({
       setIsFetching(false);
     }
   };
+
+  // Auto-fetch when a URL is pasted
+  const prevUrlRef = useRef("");
+  useEffect(() => {
+    const url = input.sourceUrl.trim();
+    // Only trigger on new valid URLs (not on every keystroke)
+    if (
+      url &&
+      url !== prevUrlRef.current &&
+      url.startsWith("http") &&
+      url.includes(".")
+    ) {
+      prevUrlRef.current = url;
+      handleFetchUrl(url);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [input.sourceUrl]);
 
   // ── Plan field updater (clears scorecard on edit) ──
 
@@ -743,7 +766,7 @@ export function StoryPlanReview({
                 />
                 <button
                   type="button"
-                  onClick={handleFetchUrl}
+                  onClick={() => handleFetchUrl()}
                   disabled={
                     isPending || isFetching || !input.sourceUrl.trim()
                   }
