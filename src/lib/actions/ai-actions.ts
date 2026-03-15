@@ -18,6 +18,10 @@ import {
   scoreStoryPlan,
   type StoryPlanScorecard,
 } from "@/lib/ai/score-story-plan";
+import {
+  fetchSourceUrl,
+  type FetchResult,
+} from "@/lib/ai/fetch-source-url";
 
 // ── Auth Helper ──
 
@@ -40,6 +44,17 @@ export async function generateArticleAction(
   return generateArticle(topic.trim(), articleType);
 }
 
+// ── URL Fetch ──
+
+export async function fetchSourceUrlAction(
+  url: string
+): Promise<FetchResult> {
+  await requireAdminAuth();
+  if (!url.trim()) throw new Error("URL boş olamaz");
+
+  return fetchSourceUrl(url.trim());
+}
+
 // ── Stage 1: Story Plan ──
 
 export async function generateStoryPlanAction(
@@ -48,11 +63,23 @@ export async function generateStoryPlanAction(
   await requireAdminAuth();
   if (!input.topic.trim()) throw new Error("Konu boş olamaz");
 
+  // Auto-fetch: if sourceUrl is given but sourceText is empty, try to fetch
+  let enrichedSourceText = input.sourceText?.trim() || undefined;
+  const sourceUrl = input.sourceUrl?.trim() || undefined;
+
+  if (sourceUrl && !enrichedSourceText) {
+    const fetchResult = await fetchSourceUrl(sourceUrl);
+    if (fetchResult.success && fetchResult.text) {
+      enrichedSourceText = fetchResult.text;
+    }
+    // If fetch fails, continue without — AI will work with topic only
+  }
+
   return generateStoryPlan({
     ...input,
     topic: input.topic.trim(),
-    sourceText: input.sourceText?.trim() || undefined,
-    sourceUrl: input.sourceUrl?.trim() || undefined,
+    sourceText: enrichedSourceText,
+    sourceUrl,
     editorNote: input.editorNote?.trim() || undefined,
   });
 }

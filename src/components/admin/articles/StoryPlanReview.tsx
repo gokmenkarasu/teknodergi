@@ -5,6 +5,7 @@ import {
   generateStoryPlanAction,
   writeArticleFromPlanAction,
   scoreStoryPlanAction,
+  fetchSourceUrlAction,
 } from "@/lib/actions/ai-actions";
 import type { StoryPlanInput, StoryPlan } from "@/lib/ai/generate-story-plan";
 import type { GeneratedArticle } from "@/lib/ai/write-article-from-plan";
@@ -534,6 +535,10 @@ export function StoryPlanReview({
   // Scorecard state
   const [scorecard, setScorecard] = useState<StoryPlanScorecard | null>(null);
 
+  // URL fetch state
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchMessage, setFetchMessage] = useState("");
+
   // UI state — separate transitions for main flow and scoring
   const [isPending, startTransition] = useTransition();
   const [isScoring, startScoring] = useTransition();
@@ -543,6 +548,46 @@ export function StoryPlanReview({
 
   const updateInput = (field: keyof InputFields, value: string) => {
     setInput((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // ── URL Fetch ──
+
+  const handleFetchUrl = async () => {
+    const url = input.sourceUrl.trim();
+    if (!url) return;
+
+    setIsFetching(true);
+    setFetchMessage("");
+    setError("");
+
+    try {
+      const result = await fetchSourceUrlAction(url);
+
+      if (result.success && result.text) {
+        setInput((prev) => ({
+          ...prev,
+          sourceText: result.text,
+          // Pre-fill topic from title if topic is empty
+          topic: prev.topic.trim() ? prev.topic : result.title ?? prev.topic,
+        }));
+        setFetchMessage(
+          result.error
+            ? `Kısmi başarı: ${result.error}`
+            : `İçerik çekildi (${Math.round(result.text.length / 1000)}K karakter)`
+        );
+      } else {
+        setFetchMessage("");
+        setError(
+          result.error ?? "İçerik çıkarılamadı — metni manuel yapıştırın"
+        );
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "URL fetch başarısız"
+      );
+    } finally {
+      setIsFetching(false);
+    }
   };
 
   // ── Plan field updater (clears scorecard on edit) ──
@@ -621,6 +666,7 @@ export function StoryPlanReview({
     setArticle(null);
     setScorecard(null);
     setError("");
+    setFetchMessage("");
   };
 
   // Derived state
@@ -683,13 +729,38 @@ export function StoryPlanReview({
             </div>
             <div>
               <label className={LABEL_CLS}>Kaynak URL</label>
-              <input
-                value={input.sourceUrl}
-                onChange={(e) => updateInput("sourceUrl", e.target.value)}
-                disabled={isPending}
-                className={`${INPUT_CLS} disabled:opacity-50`}
-                placeholder="https://..."
-              />
+              <div className="flex gap-2">
+                <input
+                  value={input.sourceUrl}
+                  onChange={(e) => {
+                    updateInput("sourceUrl", e.target.value);
+                    setFetchMessage("");
+                  }}
+                  disabled={isPending || isFetching}
+                  className={`${INPUT_CLS} disabled:opacity-50`}
+                  placeholder="https://..."
+                />
+                <button
+                  type="button"
+                  onClick={handleFetchUrl}
+                  disabled={
+                    isPending || isFetching || !input.sourceUrl.trim()
+                  }
+                  className="shrink-0 rounded-lg border border-accent/30 px-3 py-2 text-xs font-medium text-accent transition-colors hover:bg-accent/10 disabled:opacity-40"
+                  title="URL'den içerik çek"
+                >
+                  {isFetching ? (
+                    <SpinnerIcon className="h-4 w-4" />
+                  ) : (
+                    "Çek"
+                  )}
+                </button>
+              </div>
+              {fetchMessage && (
+                <p className="mt-1.5 text-xs text-green-400">
+                  {fetchMessage}
+                </p>
+              )}
             </div>
           </div>
 
