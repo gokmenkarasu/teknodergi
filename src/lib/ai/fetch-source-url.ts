@@ -199,20 +199,9 @@ function extractDescription(html: string): string | undefined {
   return undefined;
 }
 
-// ── Main Function ──
+// ── Strategy 1: Direct Fetch ──
 
-export async function fetchSourceUrl(url: string): Promise<FetchResult> {
-  // Validate URL
-  let parsedUrl: URL;
-  try {
-    parsedUrl = new URL(url);
-    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-      return { success: false, text: "", error: "Geçersiz URL protokolü" };
-    }
-  } catch {
-    return { success: false, text: "", error: "Geçersiz URL formatı" };
-  }
-
+async function fetchDirect(parsedUrl: URL): Promise<FetchResult> {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
@@ -266,23 +255,11 @@ export async function fetchSourceUrl(url: string): Promise<FetchResult> {
     const fullText = parts.join("\n");
 
     if (!articleText || articleText.length < MIN_USEFUL_LENGTH) {
-      // Partial success — we got metadata but not article body
-      if (title || description) {
-        return {
-          success: true,
-          text: fullText,
-          title,
-          error:
-            "Sayfa içeriği tam çıkarılamadı — JavaScript ile render ediliyor veya paywall arkasında olabilir. Mevcut meta verileri eklendi.",
-        };
-      }
-
       return {
         success: false,
-        text: "",
+        text: fullText,
         title,
-        error:
-          "İçerik çıkarılamadı — sayfa JavaScript ile render ediliyor veya paywall arkasında olabilir. Kaynak metni manuel yapıştırın.",
+        error: "direct-insufficient",
       };
     }
 
@@ -292,25 +269,189 @@ export async function fetchSourceUrl(url: string): Promise<FetchResult> {
         ? fullText.slice(0, MAX_TEXT_LENGTH) + "\n\n[İçerik kısaltıldı]"
         : fullText;
 
-    return {
-      success: true,
-      text: finalText,
-      title,
-    };
+    return { success: true, text: finalText, title };
   } catch (err) {
-    if (err instanceof Error && err.name === "AbortError") {
+    const msg =
+      err instanceof Error && err.name === "AbortError"
+        ? "Zaman aşımı"
+        : err instanceof Error
+          ? err.message
+          : "Bilinmeyen hata";
+    return { success: false, text: "", error: `direct-fail: ${msg}` };
+  }
+}
+
+// ── Strategy 2: Jina Reader API (handles JS rendering, paywalls) ──
+
+const JINA_TIMEOUT = 25_000;
+
+/** Clean Jina markdown output — strip navigation, menus, footers */
+function cleanJinaMarkdown(raw: string): {
+  title: string | undefined;
+  text: string;
+} {
+  const lines = raw.split("\n");
+
+  // Extract title from "Title:" header (Jina convention)
+  let title: string | undefined;
+  const titleLine = lines.find((l) => l.startsWith("Title:"));
+  if (titleLine) {
+    title = titleLine.replace("Title:", "").trim();
+  }
+
+  // Find the actual article content:
+  // Skip past navigation by looking for the content area.
+  // Jina markdown usually has nav links at top, then article body.
+  // Heuristic: find the first substantial paragraph (>80 chars, no links)
+  let contentStart = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    // Skip short lines, link-only lines, image refs, headings with ===
+    if (
+      line.length < 80 ||
+      line.startsWith("[") ||
+      line.startsWith("![") ||
+      line.startsWith("*") ||
+      line === "---" ||
+      /^=+$/.test(line) ||
+      /^#+\s/.test(line)
+    ) {
+      continue;
+    }
+    // Found a substantial paragraph — this is likely article content
+    contentStart = i;
+    break;
+  }
+
+  // Also strip footer content (after "Related" or common footer patterns)
+  let contentEnd = lines.length;
+  for (let i = lines.length - 1; i > contentStart; i--) {
+    const line = lines[i].trim().toLowerCase();
+    if (
+      line.includes("related articles") ||
+      line.includes("more from techcrunch") ||
+      line.includes("newsletter") ||
+      line.includes("© 20") ||
+      line.includes("privacy policy") ||
+      line.includes("terms of service")
+    ) {
+      contentEnd = i;
+      break;
+    }
+  }
+
+  const articleLines = lines.slice(contentStart, contentEnd);
+  const text = articleLines
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return { title, text };
+}
+
+async function fetchViaJina(parsedUrl: URL): Promise<FetchResult> {
+  try {
+    const jinaUrl = `https://r.jina.ai/${parsedUrl.toString()}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), JINA_TIMEOUT);
+
+    const response = await fetch(jinaUrl, {
+      signal: controller.signal,
+      headers: {
+        Accept: "text/markdown",
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
       return {
         success: false,
         text: "",
-        error: "Zaman aşımı: Sayfa 15 saniye içinde yanıt vermedi",
+        error: `Jina HTTP ${response.status}`,
       };
     }
 
+    const raw = await response.text();
+
+    if (!raw || raw.length < MIN_USEFUL_LENGTH) {
+      return {
+        success: false,
+        text: "",
+        error: "Jina Reader da içerik çıkaramadı",
+      };
+    }
+
+    const { title, text } = cleanJinaMarkdown(raw);
+
+    if (!text || text.length < MIN_USEFUL_LENGTH) {
+      return {
+        success: false,
+        text: "",
+        error: "Jina Reader'dan içerik temizlenemedi",
+      };
+    }
+
+    const finalText =
+      text.length > MAX_TEXT_LENGTH
+        ? text.slice(0, MAX_TEXT_LENGTH) + "\n\n[İçerik kısaltıldı]"
+        : text;
+
+    return { success: true, text: finalText, title };
+  } catch (err) {
+    const msg =
+      err instanceof Error && err.name === "AbortError"
+        ? "Jina zaman aşımı"
+        : err instanceof Error
+          ? err.message
+          : "Bilinmeyen hata";
+    return { success: false, text: "", error: msg };
+  }
+}
+
+// ── Main Function (multi-strategy) ──
+
+export async function fetchSourceUrl(url: string): Promise<FetchResult> {
+  // Validate URL
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+      return { success: false, text: "", error: "Geçersiz URL protokolü" };
+    }
+  } catch {
+    return { success: false, text: "", error: "Geçersiz URL formatı" };
+  }
+
+  // Strategy 1: Direct fetch (fast, works for most sites)
+  const directResult = await fetchDirect(parsedUrl);
+  if (directResult.success && directResult.text.length >= MIN_USEFUL_LENGTH) {
+    return directResult;
+  }
+
+  // Strategy 2: Jina Reader fallback (handles JS rendering, bot protection)
+  const jinaResult = await fetchViaJina(parsedUrl);
+  if (jinaResult.success && jinaResult.text.length >= MIN_USEFUL_LENGTH) {
+    return jinaResult;
+  }
+
+  // Both failed — return best partial result or final error
+  if (directResult.text.length > 0) {
     return {
-      success: false,
-      text: "",
+      success: true,
+      text: directResult.text,
+      title: directResult.title,
       error:
-        err instanceof Error ? err.message : "Bilinmeyen bir hata oluştu",
+        "Sayfa içeriği tam çıkarılamadı. Mevcut meta verileri eklendi — kaynak metni manuel zenginleştirmeniz önerilir.",
     };
   }
+
+  return {
+    success: false,
+    text: "",
+    title: directResult.title ?? jinaResult.title,
+    error:
+      "İçerik çıkarılamadı — sayfa bot korumalı veya paywall arkasında olabilir. Kaynak metni manuel yapıştırın.",
+  };
 }
