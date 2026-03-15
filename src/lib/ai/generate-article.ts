@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 
 const WEBRAZZI_SYSTEM_PROMPT = `Aşağıdaki görevi, Türkiye merkezli teknoloji ve girişimcilik medyasında çalışan deneyimli bir editör gibi yerine getir.
 
@@ -99,26 +99,28 @@ export async function generateArticle(
   topic: string,
   articleType?: string
 ): Promise<GeneratedArticle> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
 
-  const client = new Anthropic({ apiKey });
+  const client = new OpenAI({ apiKey });
 
   const userMessage = articleType
     ? `Tür: ${articleType}\n\nKonu: ${topic}`
     : topic;
 
-  const response = await client.messages.create({
-    model: "claude-sonnet-4-20250514",
+  const response = await client.chat.completions.create({
+    model: "gpt-4o",
     max_tokens: 4096,
-    system: WEBRAZZI_SYSTEM_PROMPT,
-    messages: [{ role: "user", content: userMessage }],
+    messages: [
+      { role: "system", content: WEBRAZZI_SYSTEM_PROMPT },
+      { role: "user", content: userMessage },
+    ],
+    response_format: { type: "json_object" },
   });
 
-  const text =
-    response.content[0].type === "text" ? response.content[0].text : "";
+  const text = response.choices[0]?.message?.content ?? "";
 
-  // Extract JSON from response (handle potential markdown code blocks)
+  // Extract JSON from response
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
     throw new Error("AI yanıtı parse edilemedi");
