@@ -269,6 +269,33 @@ Avoid this sequence: feature name -> what it does -> future plans -> company bac
 Instead, write in this sequence unless the story clearly demands otherwise:
 what changed -> why it matters -> how it works -> what it signals -> the most relevant context.
 
+FEATURE-DUMP RULE
+If the source includes multiple features, updates, or examples, do not list them mechanically.
+Group related updates under one editorial idea.
+Only mention the features that materially support the core angle.
+A news article is not a release recap.
+If the draft reads like a cleaned-up feature list, rewrite it.
+
+STRATEGIC GROUPING RULE
+When several updates belong to the same product or platform shift, group them under one broader frame.
+Example: Do not present trials, cross-device pricing, PC expansion, wishlist tools, and community posts as isolated bullets in prose. Frame them as parts of a broader effort to turn the platform into a more unified gaming hub.
+
+DETAIL WEIGHT RULE
+Not all details should receive equal space.
+Give more room to:
+- what changes user behavior
+- what changes the product strategy
+- what changes pricing, access, or platform scope
+Give less room to:
+- long example lists
+- minor supporting features
+- legacy background unless it sharpens the current news
+
+EXHAUSTIVENESS PENALTY
+Do not try to be complete.
+Trying to include every valid detail will usually make the article worse.
+A tighter, more selective story is better than a fuller but flatter one.
+
 AVOID THESE FAILURE MODES
 Do not produce:
 - source-shaped rewriting
