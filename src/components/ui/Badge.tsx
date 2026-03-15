@@ -7,6 +7,7 @@ const colorMap: Record<CategorySlug, string> = {
   "big-tech": "bg-cat-bigtech/15 text-cat-bigtech",
   yazilim: "bg-cat-yazilim/15 text-cat-yazilim",
   donanim: "bg-cat-donanim/15 text-cat-donanim",
+  mobilite: "bg-cat-donanim/15 text-cat-donanim",
 };
 
 interface BadgeProps {

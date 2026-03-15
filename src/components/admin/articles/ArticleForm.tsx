@@ -8,11 +8,9 @@ import { createArticle, updateArticle } from "@/lib/actions/article-actions";
 import { uploadImage } from "@/lib/actions/upload-action";
 import { FreepikPicker } from "@/components/admin/articles/FreepikPicker";
 import type { AdminArticle } from "@/types/article";
-import type { GeneratedArticle } from "@/lib/ai/generate-article";
 
 interface ArticleFormProps {
   article?: AdminArticle;
-  initialAIData?: GeneratedArticle;
 }
 
 function slugify(text: string): string {
@@ -24,20 +22,14 @@ function slugify(text: string): string {
     .trim();
 }
 
-export function ArticleForm({ article, initialAIData }: ArticleFormProps) {
+export function ArticleForm({ article }: ArticleFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
-  const [content, setContent] = useState(
-    initialAIData?.content ?? article?.content ?? ""
-  );
+  const [content, setContent] = useState(article?.content ?? "");
   const [coverImage, setCoverImage] = useState(article?.coverImage ?? "");
-  const [title, setTitle] = useState(
-    initialAIData?.title ?? article?.title ?? ""
-  );
-  const [slug, setSlug] = useState(
-    initialAIData?.slug ?? article?.slug ?? ""
-  );
+  const [title, setTitle] = useState(article?.title ?? "");
+  const [slug, setSlug] = useState(article?.slug ?? "");
   const [isUploading, setIsUploading] = useState(false);
 
   const handleTitleChange = (value: string) => {
@@ -126,7 +118,7 @@ export function ArticleForm({ article, initialAIData }: ArticleFormProps) {
             </label>
             <textarea
               name="excerpt"
-              defaultValue={initialAIData?.excerpt ?? article?.excerpt ?? ""}
+              defaultValue={article?.excerpt ?? ""}
               required
               rows={3}
               className="w-full rounded-lg border border-border bg-surface-0 px-4 py-2.5 text-text-primary placeholder-text-tertiary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent resize-none"
@@ -169,7 +161,7 @@ export function ArticleForm({ article, initialAIData }: ArticleFormProps) {
               </label>
               <select
                 name="category"
-                defaultValue={initialAIData?.category ?? article?.category ?? ""}
+                defaultValue={article?.category ?? ""}
                 required
                 className="w-full rounded-lg border border-border bg-surface-0 px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               >
@@ -192,7 +184,7 @@ export function ArticleForm({ article, initialAIData }: ArticleFormProps) {
                 name="readingTime"
                 type="number"
                 min={1}
-                defaultValue={initialAIData?.readingTime ?? article?.readingTime ?? 5}
+                defaultValue={article?.readingTime ?? 5}
                 className="w-full rounded-lg border border-border bg-surface-0 px-4 py-2.5 text-text-primary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               />
             </div>
@@ -214,7 +206,7 @@ export function ArticleForm({ article, initialAIData }: ArticleFormProps) {
               </label>
               <input
                 name="tags"
-                defaultValue={initialAIData?.tags?.join(", ") ?? article?.tags?.join(", ") ?? ""}
+                defaultValue={article?.tags?.join(", ") ?? ""}
                 className="w-full rounded-lg border border-border bg-surface-0 px-4 py-2.5 text-text-primary placeholder-text-tertiary focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
                 placeholder="AI, Startup, Teknoloji"
               />

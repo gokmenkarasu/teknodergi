@@ -1,6 +1,6 @@
 /**
- * Fetches a URL and extracts clean article text from HTML.
- * Uses native fetch() + regex-based HTML parsing — zero dependencies.
+ * Fetches a URL and extracts clean article text.
+ * Two strategies racing in parallel: direct fetch + Jina Reader.
  */
 
 // ── Types ──
@@ -17,11 +17,11 @@ export interface FetchResult {
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
 
-const FETCH_TIMEOUT = 7_000; // Vercel hobby has 10s limit — keep under
+const FETCH_TIMEOUT = 7_000;
+const JINA_TIMEOUT = 8_000;
 const MAX_TEXT_LENGTH = 80_000;
 const MIN_USEFUL_LENGTH = 100;
 
-/** Tags whose content should be removed entirely */
 const STRIP_CONTENT_TAGS = [
   "script",
   "style",
@@ -36,11 +36,9 @@ const STRIP_CONTENT_TAGS = [
 
 // ── HTML → Text helpers ──
 
-/** Remove tags AND their inner content */
 function stripTagsWithContent(html: string): string {
   let result = html;
   for (const tag of STRIP_CONTENT_TAGS) {
-    // Handle both self-closing and paired tags
     result = result.replace(
       new RegExp(`<${tag}[\\s>][\\s\\S]*?</${tag}>`, "gi"),
       " "
@@ -50,27 +48,18 @@ function stripTagsWithContent(html: string): string {
   return result;
 }
 
-/** Convert block-level elements to newlines, then strip remaining tags */
 function tagsToText(html: string): string {
   let text = html;
-
-  // Block elements → double newline
   text = text.replace(
     /<\/?(p|div|section|article|blockquote|h[1-6]|ul|ol|dl|table|tr|pre|hr)[^>]*>/gi,
     "\n\n"
   );
-
-  // Inline breaks
   text = text.replace(/<br\s*\/?>/gi, "\n");
   text = text.replace(/<\/?(li|dt|dd|td|th)[^>]*>/gi, "\n");
-
-  // Strip remaining HTML tags
   text = text.replace(/<[^>]+>/g, " ");
-
   return text;
 }
 
-/** Decode common HTML entities */
 function decodeEntities(text: string): string {
   return text
     .replace(/&amp;/g, "&")
@@ -94,17 +83,15 @@ function decodeEntities(text: string): string {
     );
 }
 
-/** Collapse whitespace into a readable format */
 function cleanWhitespace(text: string): string {
   return text
-    .replace(/[ \t]+/g, " ") // horizontal whitespace → single space
-    .replace(/\n[ \t]+/g, "\n") // trim leading spaces on each line
-    .replace(/[ \t]+\n/g, "\n") // trim trailing spaces on each line
-    .replace(/\n{3,}/g, "\n\n") // max two consecutive newlines
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
-/** Full pipeline: HTML string → clean text */
 function htmlToText(html: string): string {
   const cleaned = stripTagsWithContent(html);
   const asText = tagsToText(cleaned);
@@ -112,27 +99,21 @@ function htmlToText(html: string): string {
   return cleanWhitespace(decoded);
 }
 
-// ── Content extraction strategies ──
+// ── Content extraction ──
 
-/** Try to extract content from common article containers */
 function extractArticleContent(html: string): string {
-  // Strategy 1: <article> tag (most news sites)
-  const articleMatch = html.match(
-    /<article[^>]*>([\s\S]*?)<\/article>/i
-  );
+  const articleMatch = html.match(/<article[^>]*>([\s\S]*?)<\/article>/i);
   if (articleMatch) {
     const text = htmlToText(articleMatch[1]);
     if (text.length >= MIN_USEFUL_LENGTH) return text;
   }
 
-  // Strategy 2: [role="main"] or <main>
   const mainMatch = html.match(/<main[^>]*>([\s\S]*?)<\/main>/i);
   if (mainMatch) {
     const text = htmlToText(mainMatch[1]);
     if (text.length >= MIN_USEFUL_LENGTH) return text;
   }
 
-  // Strategy 3: Common content class patterns
   const classPatterns = [
     /class="[^"]*(?:article|post|entry)[_-]?(?:content|body|text)[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
     /class="[^"]*(?:story|news)[_-]?(?:content|body|text)[^"]*"[^>]*>([\s\S]*?)<\/div>/i,
@@ -148,53 +129,25 @@ function extractArticleContent(html: string): string {
     }
   }
 
-  // Strategy 4: Fallback to <body>
   const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  if (bodyMatch) {
-    return htmlToText(bodyMatch[1]);
-  }
+  if (bodyMatch) return htmlToText(bodyMatch[1]);
 
-  // Last resort: process entire input
   return htmlToText(html);
 }
 
-/** Extract page title from meta tags or <title> */
 function extractTitle(html: string): string | undefined {
-  // og:title (most reliable for articles)
   const ogMatch = html.match(
     /<meta[^>]*property="og:title"[^>]*content="([^"]*)"[^>]*>/i
   );
   if (ogMatch?.[1]) return decodeEntities(ogMatch[1]).trim();
 
-  // Reverse attribute order (content before property)
   const ogMatchAlt = html.match(
     /<meta[^>]*content="([^"]*)"[^>]*property="og:title"[^>]*>/i
   );
   if (ogMatchAlt?.[1]) return decodeEntities(ogMatchAlt[1]).trim();
 
-  // <title> tag
   const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
   if (titleMatch?.[1]) return decodeEntities(titleMatch[1]).trim();
-
-  return undefined;
-}
-
-/** Extract meta description */
-function extractDescription(html: string): string | undefined {
-  const ogDesc = html.match(
-    /<meta[^>]*property="og:description"[^>]*content="([^"]*)"[^>]*>/i
-  );
-  if (ogDesc?.[1]) return decodeEntities(ogDesc[1]).trim();
-
-  const ogDescAlt = html.match(
-    /<meta[^>]*content="([^"]*)"[^>]*property="og:description"[^>]*>/i
-  );
-  if (ogDescAlt?.[1]) return decodeEntities(ogDescAlt[1]).trim();
-
-  const metaDesc = html.match(
-    /<meta[^>]*name="description"[^>]*content="([^"]*)"[^>]*>/i
-  );
-  if (metaDesc?.[1]) return decodeEntities(metaDesc[1]).trim();
 
   return undefined;
 }
@@ -221,136 +174,67 @@ async function fetchDirect(parsedUrl: URL): Promise<FetchResult> {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      return {
-        success: false,
-        text: "",
-        error: `HTTP ${response.status}: Sayfa yüklenemedi`,
-      };
-    }
-
-    const contentType = response.headers.get("content-type") ?? "";
-    if (
-      !contentType.includes("text/html") &&
-      !contentType.includes("application/xhtml+xml") &&
-      !contentType.includes("text/plain")
-    ) {
-      return {
-        success: false,
-        text: "",
-        error: `Desteklenmeyen içerik türü: ${contentType.split(";")[0]}`,
-      };
+      return { success: false, text: "", error: `HTTP ${response.status}` };
     }
 
     const html = await response.text();
     const title = extractTitle(html);
-    const description = extractDescription(html);
     const articleText = extractArticleContent(html);
 
-    // Build final text with metadata context
-    const parts: string[] = [];
-    if (title) parts.push(`Başlık: ${title}`);
-    if (description) parts.push(`Açıklama: ${description}`);
-    if (articleText) parts.push(`\nİçerik:\n${articleText}`);
-
-    const fullText = parts.join("\n");
-
     if (!articleText || articleText.length < MIN_USEFUL_LENGTH) {
-      return {
-        success: false,
-        text: fullText,
-        title,
-        error: "direct-insufficient",
-      };
+      return { success: false, text: "", error: "direct-insufficient" };
     }
 
-    // Truncate very long content
     const finalText =
-      fullText.length > MAX_TEXT_LENGTH
-        ? fullText.slice(0, MAX_TEXT_LENGTH) + "\n\n[İçerik kısaltıldı]"
-        : fullText;
+      articleText.length > MAX_TEXT_LENGTH
+        ? articleText.slice(0, MAX_TEXT_LENGTH) + "\n\n[Truncated]"
+        : articleText;
 
     return { success: true, text: finalText, title };
   } catch (err) {
     const msg =
       err instanceof Error && err.name === "AbortError"
-        ? "Zaman aşımı"
+        ? "Timeout"
         : err instanceof Error
           ? err.message
-          : "Bilinmeyen hata";
-    return { success: false, text: "", error: `direct-fail: ${msg}` };
+          : "Unknown error";
+    return { success: false, text: "", error: `direct: ${msg}` };
   }
 }
 
-// ── Strategy 2: Jina Reader API (handles JS rendering, paywalls) ──
+// ── Strategy 2: Jina Reader API ──
 
-const JINA_TIMEOUT = 8_000; // Vercel hobby has 10s limit — keep under
-
-/** Light cleaning of Jina markdown — keep article content, strip only obvious noise */
 function cleanJinaMarkdown(raw: string): {
   title: string | undefined;
   text: string;
 } {
   const lines = raw.split("\n");
-
-  // Extract metadata from Jina headers
   let title: string | undefined;
   let contentStartIndex = 0;
 
   for (let i = 0; i < Math.min(lines.length, 10); i++) {
-    const line = lines[i];
-    if (line.startsWith("Title:")) {
-      title = line.replace("Title:", "").trim();
+    if (lines[i].startsWith("Title:")) {
+      title = lines[i].replace("Title:", "").trim();
     }
-    if (line.startsWith("Markdown Content:")) {
+    if (lines[i].startsWith("Markdown Content:")) {
       contentStartIndex = i + 1;
       break;
     }
   }
 
-  // Work with content after Jina metadata headers
   const contentLines = lines.slice(contentStartIndex);
 
-  // Light filter: remove lines that are clearly navigation/menu noise
   const filtered = contentLines.filter((line) => {
     const trimmed = line.trim();
-
-    // Keep empty lines (paragraph separation)
     if (!trimmed) return true;
-
-    // Keep headings (article structure)
     if (/^#{1,6}\s/.test(trimmed)) return true;
-    if (/^=+$/.test(trimmed) || /^-+$/.test(trimmed)) return true;
-
-    // Keep substantial lines (likely article content)
     if (trimmed.length > 60) return true;
-
-    // Remove pure navigation links: lines that are ONLY a markdown link
     if (/^\[.*\]\(.*\)$/.test(trimmed) && trimmed.length < 60) return false;
-
-    // Remove bullet-only navigation (short list items that are just links)
     if (/^\*\s+\[.*\]\(.*\)$/.test(trimmed)) return false;
-
-    // Keep everything else — GPT-4o can handle noise
     return true;
   });
 
-  // Strip obvious footer sections
-  let endIdx = filtered.length;
-  for (let i = filtered.length - 1; i > 0; i--) {
-    const lower = filtered[i].trim().toLowerCase();
-    if (
-      lower.includes("terms of service") ||
-      lower.includes("privacy policy") ||
-      lower.includes("© 20") ||
-      lower.includes("cookie preferences")
-    ) {
-      endIdx = i;
-      break;
-    }
-  }
-
   const text = filtered
-    .slice(0, endIdx)
     .join("\n")
     .replace(/\n{4,}/g, "\n\n\n")
     .trim();
@@ -361,67 +245,50 @@ function cleanJinaMarkdown(raw: string): {
 async function fetchViaJina(parsedUrl: URL): Promise<FetchResult> {
   try {
     const jinaUrl = `https://r.jina.ai/${parsedUrl.toString()}`;
-
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), JINA_TIMEOUT);
 
     const response = await fetch(jinaUrl, {
       signal: controller.signal,
-      headers: {
-        Accept: "text/markdown",
-      },
+      headers: { Accept: "text/markdown" },
     });
 
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      return {
-        success: false,
-        text: "",
-        error: `Jina HTTP ${response.status}`,
-      };
+      return { success: false, text: "", error: `Jina HTTP ${response.status}` };
     }
 
     const raw = await response.text();
-
     if (!raw || raw.length < MIN_USEFUL_LENGTH) {
-      return {
-        success: false,
-        text: "",
-        error: "Jina Reader da içerik çıkaramadı",
-      };
+      return { success: false, text: "", error: "Jina empty" };
     }
 
     const { title, text } = cleanJinaMarkdown(raw);
 
     if (!text || text.length < MIN_USEFUL_LENGTH) {
-      return {
-        success: false,
-        text: "",
-        error: "Jina Reader'dan içerik temizlenemedi",
-      };
+      return { success: false, text: "", error: "Jina cleaned empty" };
     }
 
     const finalText =
       text.length > MAX_TEXT_LENGTH
-        ? text.slice(0, MAX_TEXT_LENGTH) + "\n\n[İçerik kısaltıldı]"
+        ? text.slice(0, MAX_TEXT_LENGTH) + "\n\n[Truncated]"
         : text;
 
     return { success: true, text: finalText, title };
   } catch (err) {
     const msg =
       err instanceof Error && err.name === "AbortError"
-        ? "Jina zaman aşımı"
+        ? "Jina timeout"
         : err instanceof Error
           ? err.message
-          : "Bilinmeyen hata";
+          : "Unknown error";
     return { success: false, text: "", error: msg };
   }
 }
 
 // ── Helpers ──
 
-/** Wraps a fetch result into a Promise that rejects if content is insufficient */
 function requireUseful(promise: Promise<FetchResult>): Promise<FetchResult> {
   return promise.then((r) => {
     if (r.success && r.text.length >= MIN_USEFUL_LENGTH) return r;
@@ -429,47 +296,43 @@ function requireUseful(promise: Promise<FetchResult>): Promise<FetchResult> {
   });
 }
 
-// ── Main Function (parallel race) ──
+// ── Main ──
 
 export async function fetchSourceUrl(url: string): Promise<FetchResult> {
-  // Validate URL
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(url);
     if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-      return { success: false, text: "", error: "Geçersiz URL protokolü" };
+      return { success: false, text: "", error: "Invalid URL protocol" };
     }
   } catch {
-    return { success: false, text: "", error: "Geçersiz URL formatı" };
+    return { success: false, text: "", error: "Invalid URL format" };
   }
 
-  // Race both strategies in parallel — first successful one wins
+  // Race both strategies — first success wins
   try {
-    const result = await Promise.any([
+    return await Promise.any([
       requireUseful(fetchDirect(parsedUrl)),
       requireUseful(fetchViaJina(parsedUrl)),
     ]);
-    return result;
   } catch {
-    // Both failed — try to return best partial result
+    // Both failed
   }
 
-  // Fallback: run Jina alone (it's more reliable for news sites)
+  // Fallback: Jina partial result
   const jinaResult = await fetchViaJina(parsedUrl);
   if (jinaResult.text.length > 0) {
     return {
       success: true,
       text: jinaResult.text,
       title: jinaResult.title,
-      error:
-        "Sayfa içeriği kısmen çıkarıldı — kaynak metni kontrol edin.",
+      error: "Partial content extracted",
     };
   }
 
   return {
     success: false,
     text: "",
-    error:
-      "İçerik çıkarılamadı — sayfa bot korumalı veya paywall arkasında olabilir. Kaynak metni manuel yapıştırın.",
+    error: "Could not extract content — site may be bot-protected. Paste source text manually.",
   };
 }

@@ -35,6 +35,12 @@ export const CATEGORIES: readonly Category[] = [
     description: "İşlemciler, ekran kartları, telefonlar ve diğer donanım incelemeleri.",
     color: "cat-donanim",
   },
+  {
+    slug: "mobilite",
+    name: "Mobilite",
+    description: "Elektrikli araçlar, otonom sürüş ve ulaşım teknolojileri.",
+    color: "cat-donanim",
+  },
 ] as const;
 
 export const CATEGORY_MAP = new Map(

@@ -8,6 +8,7 @@ const accentTextMap: Record<CategorySlug, string> = {
   "big-tech": "text-cat-bigtech",
   yazilim: "text-cat-yazilim",
   donanim: "text-cat-donanim",
+  mobilite: "text-cat-donanim",
 };
 
 interface MostReadProps {

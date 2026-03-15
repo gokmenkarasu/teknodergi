@@ -1,4 +1,4 @@
-export type CategorySlug = "yapay-zeka" | "startup" | "big-tech" | "yazilim" | "donanim";
+export type CategorySlug = "yapay-zeka" | "startup" | "big-tech" | "yazilim" | "donanim" | "mobilite";
 
 export interface Category {
   readonly slug: CategorySlug;

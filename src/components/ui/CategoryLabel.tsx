@@ -8,6 +8,7 @@ const dotColorMap: Record<CategorySlug, string> = {
   "big-tech": "bg-cat-bigtech",
   yazilim: "bg-cat-yazilim",
   donanim: "bg-cat-donanim",
+  mobilite: "bg-cat-donanim",
 };
 
 interface CategoryLabelProps {

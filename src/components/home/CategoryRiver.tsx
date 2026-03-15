@@ -11,6 +11,7 @@ const accentBorderMap: Record<CategorySlug, string> = {
   "big-tech": "border-l-cat-bigtech",
   yazilim: "border-l-cat-yazilim",
   donanim: "border-l-cat-donanim",
+  mobilite: "border-l-cat-donanim",
 };
 
 interface CategoryRiverProps {
