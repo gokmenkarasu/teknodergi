@@ -2,6 +2,26 @@ import type { Article, CategorySlug } from "@/types/article";
 
 export const articles: readonly Article[] = [
   {
+    slug: "meta-moltbook-satin-alimi-ai-agent-ticaret",
+    title: "Meta, Moltbook'u Satın Alarak Yapay Zeka Ajanlarının Yöneteceği Ticaret Altyapısına Yatırım Yapıyor",
+    excerpt: "Meta'nın Moltbook satın alımı, şirketin geleceği insan kullanıcılardan çok otonom AI ajanlarının şekillendireceği bir internet vizyonuna işaret ediyor.",
+    content: `<p><strong>Meta</strong>, sosyal ticaret altyapısı sunan <strong>Moltbook</strong>'u satın aldı. Anlaşma, şirketin reklam ve ticaret stratejisini köklü biçimde değiştirmeye hazırlandığının en somut göstergesi: Meta artık kullanıcılar yerine, onlar adına alışveriş yapan yapay zeka ajanlarının hâkim olacağı bir ekosisteme hazırlanıyor.</p>
+<h3>Neden Moltbook?</h3>
+<p>Moltbook ilk bakışta sıradan bir sosyal içerik platformu gibi görünse de asıl değeri, AI ajanlarının ticari işlemleri yürütmesine olanak tanıyan altyapısında yatıyor. Sektör analistlerinin <strong>"agentic commerce"</strong> olarak adlandırdığı bu model, otonom sistemlerin kullanıcılar adına ürün araştırması, fiyat karşılaştırması ve satın alma işlemlerini gerçekleştirmesini öngörüyor.</p>
+<h3>Sosyal Ticaretten Ajan Ticaretine</h3>
+<p>Meta'nın hamlesi, şirketin mevcut sosyal ticaret modelinden stratejik bir kopuşa işaret ediyor. Bugünkü sistemde kullanıcılar Instagram veya Facebook üzerinden doğrudan alışveriş yapıyor. Yeni vizyonda ise AI ajanları bu platformlarda kullanıcı gibi hareket ederek işlemleri otomatize edecek.</p>
+<p>Bu dönüşüm sadece Meta'yı değil, dijital reklamcılık sektörünü de doğrudan etkiliyor. Reklamların hedef kitlesi artık insanlar değil, onların dijital temsilcileri olan AI ajanları olacak — bu da reklam modellerinin yeniden tasarlanmasını gerektiriyor.</p>
+<h3>Daha Geniş Bir Trend</h3>
+<p>Meta bu yarışta yalnız değil. Büyük teknoloji şirketleri, ajan tabanlı ticaretin ölçeklenebilir altyapısını kurmak için yoğun yatırım yapıyor. Moltbook satın alımı, Meta'nın bu alanda erken pozisyon almaya çalıştığını gösteriyor — ancak modelin ne zaman ve nasıl gelir üretmeye başlayacağı henüz belirsiz.</p>`,
+    category: "big-tech",
+    coverImage: "/images/articles/meta-moltbook.svg",
+    publishedAt: "2026-03-15T10:00:00Z",
+    readingTime: 5,
+    author: "TeknoDergi",
+    tags: ["Meta", "Moltbook", "yapay zeka", "AI ajanları", "agentic commerce"],
+    featured: true,
+  },
+  {
     slug: "meta-16-bin-calisan-isten-cikarma-yapay-zeka",
     title: "Meta, Yapay Zeka Harcamalarını Karşılamak İçin 16 Bin Kişiyi İşten Çıkarmayı Planlıyor",
     excerpt: "Facebook ve Instagram'ın ana şirketi Meta, çalışanlarının yüzde 20'sine varan büyük çaplı bir işten çıkarma planı üzerinde çalışıyor.",
@@ -17,7 +37,6 @@ export const articles: readonly Article[] = [
     readingTime: 5,
     author: "TeknoDergi",
     tags: ["Meta", "işten çıkarma", "yapay zeka", "Big Tech"],
-    featured: true,
   },
   {
     slug: "openai-gpt-5-turkiye-etkisi",
